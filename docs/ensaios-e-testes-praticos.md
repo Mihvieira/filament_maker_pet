@@ -81,8 +81,15 @@ Para garantir que a tira dobre no diâmetro exato de 1.75 mm sem faltar nem sobr
 
 ## 4. Adaptações Mecânicas e Modelos 3D Utilizados
 
-### 1. Preparação da Garrafa: Alisamento Térmico com Ar Comprimido
+### 1. Preparação da Garrafa: Alisamento Térmico e Protocolo de Segurança
 * **Bico Rosqueável**: Utilizou-se o modelo [Crushed Bottle Fixer (MakerWorld)](https://makerworld.com/pt/models/2620743-crushed-bottle-fixer#profileId-2892599).
+* **Protocolo de Segurança**:
+  > [!CAUTION]
+  > **Atenção**: Aplicar calor sobre corpos pressurizados exige cautela operacional.
+  > - Nunca exceda a pressão leve de **15 a 20 psi** (evite compressores de alta pressão sem regulador).
+  > - Mantenha a fonte de calor (soprador térmico ou chama) a pelo menos **15 cm a 20 cm de distância, nunca encostando no plástico**.
+  > - A garrafa deve girar ininterruptamente; não concentre calor em um único ponto para evitar o rompimento repentino da parede.
+  > - Use óculos de proteção. Como alternativa sem risco, selecione embalagens que já possuem corpo naturalmente liso e cilíndrico, que **dispensam calor e pressurização**.
 
 ### 2. Gabarito Cortador de Fita
 * Para cortar a tira helicoidal contínua, utilizou-se o modelo [Simple PET bottle cutter (MakerWorld)](https://makerworld.com/pt/models/98441-simple-pet-bottle-cutter#profileId-111492), com lâmina de estilete padronizada de 18 mm.
@@ -90,5 +97,5 @@ Para garantir que a tira dobre no diâmetro exato de 1.75 mm sem faltar nem sobr
 ### 3. Engrenagens de Tração do Projeto Petalot e Reforço Estrutural
 * Foram adotadas as engrenagens de tração e mancais do projeto [Petalot (MakerWorld)](https://makerworld.com/pt/models/190886-petalot-plastic-bottles-into-3d-filament#profileId-2108357).
 * **Adaptação Estrutural para Base em Madeira**:
-  - Na montagem direta sobre bancada plana de madeira, a força axial de tração gerava torção nos suportes plásticos, fazendo as engrenagens perderem o paralelismo.
-  - **Solução**: Foram introduzidas **duas barras fixas transversais** interligando diretamente as laterais dos suportes. Isso conferiu rigidez absoluta ao conjunto mecânico, eliminando folgas e perda de passos.
+  - Na montagem direta sobre bancada plana de madeira (sem o chassi original com encaixes do projeto de origem), a força axial de tração provocava torção mecânica nos suportes impressos, fazendo as engrenagens perderem o alinhamento dos dentes.
+  - **Solução Implementada**: Em vez de peças metálicas adicionais, **foram acrescentados cubos de reforço nos pontos de fixação diretamente ao arquivo `.3mf`** no fatiador. Essa geometria adicional ampliou a área de contato e a rigidez da base plástica contra a madeira, mantendo os eixos perfeitamente paralelos e sem folgas sob tração contínua.

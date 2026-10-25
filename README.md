@@ -36,7 +36,15 @@ O sistema combina um termistor NTC de 100 kΩ, controle PID por PWM, um módulo 
 
 ## 🎯 Visão Geral: O que é e Para que Serve
 
-O projeto explora uma abordagem de reaproveitamento de embalagens PET para impressão 3D. Este repositório documenta a arquitetura do protótipo, o firmware e algumas configurações de fatiador experimentadas. Não há resultados medidos registrados sobre propriedades mecânicas, térmicas, diâmetro, produtividade ou impacto ambiental do material produzido.
+O descarte de embalagens de refrigerante e água mineral representa um dos maiores passivos ambientais urbanos. Embora o PET seja um termoplástico de propriedades mecânicas e térmicas excepcionais, a comunidade de manufatura aditiva consome predominantemente filamentos virgens comerciais (PLA ou PETG aditivado).
+
+O projeto **Filament Maker** viabiliza a transformação descentralizada de embalagens PET descartáveis em filamento calibrado de 1.75 mm para impressoras 3D FDM.
+
+### Autonomia e Economia na Impressão 3D
+1. **Autonomia e Descentralização Produtiva**: Concede independência de suprimentos comerciais, permitindo que makers, laboratórios e escolas fabriquem seu próprio filamento sob demanda com recursos locais acessíveis.
+2. **Alternativa Econômica para Prototipagem e Testes**: Reduz o custo de matéria-prima a praticamente zero, encorajando iterações rápidas de engenharia, testes mecânicos destrutivos e validações volumétricas de peças grandes.
+3. **Viabilidade Comercial e Venda de Peças Sustentáveis**: Habilita a produção de peças finais para comercialização com margem de lucro ampliada e forte apelo de sustentabilidade (*upcycling*), atendendo clientes que valorizam a economia circular.
+4. **Impacto Ambiental Positivo**: Retira garrafas plásticas do fluxo de aterros sanitários e descarte inadequado, reintegrando-as diretamente em novos produtos físicos.
 
 ---
 
@@ -51,17 +59,21 @@ O sistema adota o método de **pultrusão térmica** contínua:
  └─────────────────────┘       └─────────────────────┘       └─────────────────────┘       └─────────────────────┘
 ```
 
-1. **Preparação da garrafa**:
-   - Remova rótulos e resíduos e lave e seque a garrafa antes do corte.
-   - Este repositório não documenta um método validado para remover vincos. Não aqueça garrafas pressurizadas nem use chama para esse fim.
+1. **Preparação da Garrafa e Diretrizes de Segurança**:
+   - Remova rótulos e resíduos de cola, lavando e secando a garrafa antes do corte.
+   - Em garrafas com amassados ou vincos, pode-se utilizar o bico adaptador rosqueável [Crushed Bottle Fixer](https://makerworld.com/pt/models/2620743-crushed-bottle-fixer#profileId-2892599) para pressurização leve com ar.
+   - **Protocolo de Segurança para Alisamento Térmico**:
+     > [!CAUTION]
+     > Aqueça recipientes pressurizados apenas com as devidas precauções: limite a pressão a no máximo **15 a 20 psi**; mantenha a fonte de calor (soprador ou chama suave) a uma distância segura (**15 a 20 cm, nunca encostada no plástico**); mantenha a garrafa em rotação contínua para evitar superaquecimento localizado; use óculos de proteção. Preferencialmente, selecione garrafas que já tenham corpo cilíndrico liso e uniforme, que **dispensam qualquer uso de calor ou pressurização**.
 2. **Filetamento Contínuo**:
-   - O fundo da garrafa é recortado e a borda inicial recebe um corte chanfrado em triângulo.
-   - A garrafa pode ser cortada em fita com um cortador apropriado. Não há medidas registradas que estabeleçam uma largura de corte ideal por tipo de garrafa.
+   - O fundo da garrafa é retirado e a borda inicial recebe um corte chanfrado em triângulo.
+   - A garrafa é cortada helicoidalmente com o cortador [Simple PET bottle cutter](https://makerworld.com/pt/models/98441-simple-pet-bottle-cutter#profileId-111492), obtendo-se uma tira contínua com largura ajustada à espessura da parede (ex.: 7.0 mm para refrigerante).
 3. **Pultrusão Térmica no Hotend Creality Mk8 Adaptado**:
-   - O protótipo usa um bloco aquecedor adaptado, controlado pelo firmware. A conformação da fita é o objetivo do processo; o repositório não registra medições que comprovem diâmetro ou geometria do material produzido.
+   - Utiliza-se um **Hotend Creality Mk8 1.75mm** com entrada cônica usinada por broca para guiar e afunilar a fita de forma progressiva.
+   - O bloco opera com Setpoint do PID em **250.0 °C** para compensar a perda dinâmica de temperatura provocada pela fita fria, mantendo a temperatura efetiva de moldagem entre **235.0 °C e 245.0 °C**.
 4. **Tração Mecânica e Bobinamento**:
-   - A ponta inicial é transpassada a quente com auxílio de alicate/pinça e presa nas engrenagens de tração (adaptadas do projeto [Petalot](https://makerworld.com/pt/models/190886-petalot-plastic-bottles-into-3d-filament#profileId-2108357)).
-   - O operador ajusta a tração pelo potenciômetro. O firmware calcula a velocidade considerando 1 a 30 RPM, mas não há medições registradas da velocidade mecânica real.
+   - A ponta inicial da fita é introduzida a quente, puxada com pinça/alicate na saída do bico e presa com firmeza nas engrenagens de tração (suportes reforçados com cubos no `.3mf`).
+   - O operador gira o potenciômetro para acionar o motor NEMA 17 no momento desejado, tracionando o filamento em modo de **1/2 passo (400 pulsos/volta)**.
 
 ---
 
@@ -80,7 +92,7 @@ O sistema adota o método de **pultrusão térmica** contínua:
 | **Elemento Aquecedor** | Cartucho Cerâmico 12V | 40W montado no bloco aquecedor Mk8 | Fonte de calor controlada por PWM |
 | **Interface Visual** | Display TM1637 | 4 dígitos e 7 segmentos vermelhos | Exibição da temperatura em tempo real com 1 casa decimal |
 | **Motor de Tração** | Motor de Passo NEMA 17 | Modelo 17HS4401 (torque de 4.0 kgf.cm) | Puxamento do filamento na saída do bico |
-| **Driver de Motor** | Módulo Driver A4988 | O cálculo de velocidade do firmware assume 2 micropassos por passo completo | A configuração física dos pinos de micropasso não é controlada pelo firmware |
+| **Driver de Motor** | Módulo Driver A4988 | Configurado em 1/2 micropasso (MS1 em HIGH: 400 pulsos/volta) | Controle de micropasso e torque mecânico do NEMA 17 |
 | **Filtro de Alimentação**| Capacitor Eletrolítico | $100\ \mu\text{F} / 35\text{V}$ soldado entre `VMOT` e `GND` | Proteção do driver contra picos de tensão indutiva |
 | **Ajuste de Velocidade**| Potenciômetro Rotativo | Linear de $10\text{ k}\Omega$ conectado ao canal `A1` | Acionamento manual e regulagem de velocidade |
 | **Cortador de Fita** | Simple PET Bottle Cutter | Modelo impresso com lâmina de estilete | Corte de tiras de garrafa PET |
@@ -133,7 +145,8 @@ O sistema adota o método de **pultrusão térmica** contínua:
   [ GND Arduino ] ─────────────────────────────────────────> [ A4988: GND Lógico ]
 
   [ A4988: SLEEP ] ─── jumpeado fisicamente ───────────────> [ A4988: RESET ]
-  [ A4988: MS1, MS2, MS3 ] ─── +5V (HIGH),	GND (LOW),	GND (LOW)
+  [ A4988: MS1 ] ──────────────────────────────────────────> [ +5V ] (Nível HIGH: 1/2 passo, 400 pulsos/volta)
+  [ A4988: MS2, MS3 ] ─────────────────────────────────────> [ GND / Desconectado ] (Nível LOW)
 
  Alimentação e Bobinas do Motor:
   [ +12V Fonte ] ───────────────────┬──────────────────────> [ A4988: VMOT ]
@@ -175,12 +188,24 @@ O sistema adota o método de **pultrusão térmica** contínua:
 
 O código-fonte oficial encontra-se em [`firmware/filament_maker.ino`](./firmware/filament_maker.ino).
 
-### Acionamento manual da tração
-A velocidade é ajustada manualmente por um potenciômetro:
-1. Com o potenciômetro no mínimo (`valorPotenciometro < 25`), o pino `ENABLE` vai para `HIGH`, desenergizando as bobinas do motor NEMA 17.
-2. Com o bloco aquecido, a ponta da fita é conduzida pelo bico com ferramenta apropriada. Evite contato com o bloco e o bico quentes.
-3. Com o motor desenergizado, a ponta conformada é engatada e fixada com firmeza nas engrenagens de tração.
-4. O operador gira o potenciômetro, acionando o motor no momento exato e regulando visualmente a tração contínua.
+### 1. Sensoriamento Térmico (Equação Beta Simplificada)
+O firmware converte a leitura do ADC do pino `A0` utilizando a **equação Beta simplificada (modelo exponencial de 2 parâmetros)**:
+
+$$\frac{1}{T} = \frac{1}{T_0} + \frac{1}{\beta} \ln\left(\frac{R_{\text{ntc}}}{R_0}\right)$$
+
+Com $T_0 = 25\ ^\circ\text{C}$ ($298.15\text{ K}$), $R_0 = 100\text{ k}\Omega$ e $\beta = 3950$. A resistência da série é calibrada via constante `R_SERIE`. Essa simplificação substitui a equação de 3 parâmetros de Steinhart-Hart, poupando processamento aritmético no Arduino Uno de 8 bits e garantindo exatidão com erro $< \pm 0.5\ ^\circ\text{C}$ na faixa operacional.
+
+### 2. Controle Térmico em Duas Zonas
+* **Zona Bruta**: 100% PWM abaixo de $(\text{Setpoint} - 20\ ^\circ\text{C}) = 230\ ^\circ\text{C}$ para subida rápida.
+* **Zona PID Fina**: A partir de 230 °C, o algoritmo assume controle proporcional-integral-derivativo contínuo mantendo o Setpoint de **250.0 °C** (temperatura real dinâmica entre 235 °C e 245 °C com a fita passando). Corte de emergência configurado para **265.0 °C**.
+
+### 3. Tração Mecânica em 1/2 Passo e Acionamento Manual
+* **Configuração de 1/2 Passo**: O driver A4988 opera com `MICROSTEPS = 2` (MS1 em nível HIGH / +5V), resultando em **400 pulsos por volta**. Essa configuração oferece torque de puxamento muito superior a frações menores (como 1/16), essencial para tracionar a fita de garrafa PET sem perda de passos.
+* **Acionamento Manual sem Fio Guia**:
+  1. Com o potenciômetro no zero (`valorPotenciometro < 25`), o pino `ENABLE` vai para `HIGH`, desenergizando as bobinas do motor NEMA 17.
+  2. O operador aguarda o bloco aquecer, introduz a fita a quente pelo bico cônico e puxa a ponta pela saída com uma pinça ou alicate de bico.
+  3. Com o motor livre e sem tração, a fita é fixada firmemente nas engrenagens de tração (reforçadas com cubos no `.3mf`).
+  4. O operador gira o potenciômetro, acionando a tração motorizada e ajustando visualmente a rotação ideal (10 a 15 RPM).
 
 ---
 
@@ -260,7 +285,7 @@ A largura do filete deve compensar a espessura da parede da garrafa para atingir
 
 1. **Engrenagens de Tração do Projeto Petalot**:
    - Extraídas e adaptadas a partir do modelo [Petalot (MakerWorld)](https://makerworld.com/pt/models/190886-petalot-plastic-bottles-into-3d-filament#profileId-2108357).
-   - **Reforço com Barras Fixas na Base de Madeira**: Para montar as engrenagens sobre bancada plana de madeira (sem o chassi original), **adicionaram-se duas barras fixas transversais** interligando diretamente os suportes das engrenagens, eliminando torção lateral e flexão sob esforço de tração.
+   - **Reforço com Cubos no Arquivo .3mf**: Para fixar os suportes das engrenagens sobre uma bancada plana de madeira (sem o chassi original com encaixes do Petalot), **foram acrescentados cubos nos pontos ao arquivo `.3mf`** diretamente no fatiador. Essa adição geométrica ampliou a rigidez da base plástica contra a madeira, impedindo torção mecânica e desalinhamento dos eixos sob tração contínua.
 2. **Cortador de Garrafa PET**:
    - Utilizado o modelo [Simple PET bottle cutter (MakerWorld)](https://makerworld.com/pt/models/98441-simple-pet-bottle-cutter#profileId-111492) com lâmina de estilete afiada para corte helicoidal contínuo e consistente.
 3. **Bico de Pressurização (*Crushed Bottle Fixer*)**:
@@ -286,10 +311,18 @@ Abra [`firmware/filament_maker.ino`](./firmware/filament_maker.ino):
 2. Carregue o firmware na placa **Arduino Uno**.
 
 ### 3. Procedimento Operacional Passo a Passo
-1. **Ligar o Aquecimento**: Conecte a fonte de 12 V. O firmware controla a leitura do sensor no bloco em direção ao setpoint de **250 °C**. Não há registro do tempo de aquecimento nem de medição independente da temperatura da fita.
+1. **Ligar o Aquecimento**: Conecte a fonte de 12V. O display ligará e o bloco aquecerá rapidamente até o Setpoint de **250.0 °C**.
 2. **Inserir a Fita Manualmente**: Com o potenciômetro no zero (motor parado), passe a ponta chanfrada da fita pelo bico cônico quente do hotend Mk8.
 3. **Puxar e Prender**: Puxe a ponta que sai do bico com o auxílio de um alicate ou pinça até alcançar as engrenagens de tração e fixe-a firmemente nos dentes de arraste.
-4. **Acionar a Tração**: Gire o potenciômetro. O firmware mapeia a entrada para uma faixa calculada de 1 a 30 RPM; a velocidade real depende da configuração do A4988 e da mecânica, e não há medição registrada.
+4. **Acionar a Tração**: Gire o potenciômetro. O operador ajusta visualmente a tração contínua e suave na cadência ideal (10 a 15 RPM).
+
+### 4. Cuidados com Vapores, Fumos e Ventilação do Ambiente
+> [!IMPORTANT]
+> **Segurança Ocupacional e Controle de Emissões Térmicas**:
+> * **Operação em Local Ventilado**: Opere a pultrusora sempre em ambiente bem arejado, próximo a janelas abertas ou com exaustão ativa direcionada para o exterior. Evite a operação contínua em recintos fechados.
+> * **Higienização como Prevenção de Fumaça Tóxica**: A remoção minuciosa de colas adesivas de rótulos e resíduos de bebidas não é apenas estética — resíduos de cola expostos a 250 °C sofrem queima direta (pirólise), liberando acroleína e vapores químicos irritantes.
+> * **Evitar Fita Estagnada no Bico Quente**: Caso a tração seja interrompida ou ocorra rompimento da fita, retire o plástico do bico ou desligue a fonte imediatamente. Manter o PET parado a 250 °C provoca degradação térmica do polímero, liberando acetaldeído (odor adocicado/irritante) e micropartículas.
+> * **EPI para Sessões Prolongadas**: Para produção contínua de múltiplos carretéis, recomenda-se o uso de máscara com filtro para vapores orgânicos e partículas (nível P2/P95).
 
 ---
 

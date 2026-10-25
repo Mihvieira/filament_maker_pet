@@ -61,8 +61,8 @@ PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 // PARÂMETROS DO MOTOR NEMA 17 E DRIVER A4988
 // ==========================================
 const int PASSOS_POR_REVOLUCAO = 200; // Passo angular de 1.8° por passo padrão NEMA 17
-const int MICROSTEPS = 2;            // Microstepping 1/2 (MS1, MS2, MS3 conectados ao +5V)
-const long PASSOS_TOTAIS_VOLTA = (long)PASSOS_POR_REVOLUCAO * MICROSTEPS; // 3200 pulsos/volta
+const int MICROSTEPS = 2;            // Configuração 1/2 passo (MS1 em HIGH/+5V, MS2 e MS3 em LOW/GND)
+const long PASSOS_TOTAIS_VOLTA = (long)PASSOS_POR_REVOLUCAO * MICROSTEPS; // 400 pulsos/volta
 
 // Faixas de operação de velocidade (RPM no eixo do motor / carretel)
 // Estudos empíricos (REPET / IFS Lagarto) indicam operação ideal entre 10 e 15 RPM (25 a 52 cm/min)
