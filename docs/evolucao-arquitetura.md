@@ -45,11 +45,13 @@ A implementação do termistor tipo gotinha (NTC 100k 3950) demandou cuidados co
 * Adotou-se o **Hotend Creality Mk8 1.75mm** (modelo da Ender 3 / CR10) com cartucho cerâmico de 12V 40W.
 * **Adaptação por Broca Cônica**: A entrada cilíndrica foi usinada com broca cônica para criar um funil de entrada suave, forçando as abas da fita plástica a se dobrarem continuamente em direção ao centro sem emperrar.
 
-### Módulo MOSFET HA210N06
-* Chaveamento de potência realizado pelo MOSFET de canal N **HA210N06**, amplamente empregado em extrusoras comerciais por sua baixa resistência interna de condução ($R_{DS(on)}$).
-* **Proteções de Fiação**:
-  - Resistor em série de **$220\,\Omega$** entre o pino digital `D9` e o Gate para amortecer transientes de carga.
-  - Resistor de **$10\text{ k}\Omega$ de pull-down** entre o Gate e o GND para manter o MOSFET obrigatoriamente desligado durante a reinicialização do Arduino.
+### Módulo Driver PWM + MOSFET HA210N06
+* Chaveamento de potência realizado pelo **Módulo Driver PWM MOSFET HA210N06** (15A / 400W), amplamente empregado em extrusoras comerciais e camas aquecidas por sua baixíssima resistência interna de condução ($R_{DS(on)}$).
+* **Topologia e Conexões do Módulo**:
+  - **Entrada de Controle**: Recebe o sinal de chaveamento do pino `D9` (PWM) do Arduino no terminal `TRIG / PWM`, com terra compartilhado no `GND` de sinal.
+  - **Entradas de Alta Corrente (`VIN+` e `VIN-`)**: Conectadas diretamente aos barramentos de +12V e GND da fonte chaveada externa.
+  - **Saídas de Potência (`OUT+` e `OUT-`)**: Conectadas diretamente aos terminais do cartucho cerâmico de 12V 40W do hotend Mk8.
+  - O circuito interno do módulo já incorpora os circuitos de chaveamento rápido e pull-down necessários para manter o MOSFET desligado durante o boot do Arduino, eliminando ruídos e prevenindo acionamentos involuntários.
 
 ### Dinâmica Térmica: Definição do Setpoint em 250 °C
 * Embora a moldagem estática do PET ocorra em ~235 °C, o firmware define o **Setpoint em 250.0 °C**.
@@ -110,7 +112,7 @@ Durante a pultrusão a 250 °C, a integridade da atmosfera de trabalho depende d
 | :--- | :--- | :--- | :--- |
 | **Controlador** | Termostato digital W1209 | Arduino Uno R3 com firmware C++ | Escala térmica até 265 °C, controle PID e flexibilidade de I/O. |
 | **Cálculo NTC** | Steinhart-Hart de 3 parâmetros | Equação Beta simplificada ($\beta=3950$) | Requer calibração simples de 1 ponto ($R_{\text{série}}$) e alivia a CPU do Arduino. |
-| **Potência** | Relé eletromecânico | Módulo MOSFET HA210N06 (com $220\,\Omega$ e $10\text{ k}\Omega$) | Chaveamento PWM silencioso, rápido e protegido contra reboots. |
+| **Potência** | Relé eletromecânico | Módulo Driver PWM MOSFET HA210N06 | Chaveamento PWM silencioso de alta potência (15A/400W) com 2 entradas 12V e 2 saídas dedicadas para o hotend. |
 | **Elemento Aquecedor**| Bloco genérico sem afunilamento | Hotend Creality Mk8 com entrada cônica | Transição gradual em funil que dobra a fita sem emperrar. |
 | **Setpoint Térmico**| 235 °C estático | 250.0 °C nominal (queda real para 235 °C–245 °C) | Compensa a perda contínua de calor transferida para a fita fria. |
 | **Microstepping** | 1/16 micropasso (3200 p/v) | 1/2 passo (400 pulsos/volta com MS1 no +5V) | Máximo torque útil de puxamento e frequência de pulsos moderada. |

@@ -1,20 +1,22 @@
-# ♻️ Filament Maker: Protótipo de Pultrusora PET para Impressão 3D
+# ♻️ Filament Maker: Extrusora e Pultrusora de Filamento PET (1.75 mm)
 
 [![Arduino Uno](https://img.shields.io/badge/Microcontroller-Arduino%20Uno%20R3-00979D?logo=arduino&logoColor=white)](https://www.arduino.cc/)
 [![Language: C++](https://img.shields.io/badge/Firmware-C%2B%2B%20%2F%20Wiring-blue?logo=c%2B%2B&logoColor=white)](./firmware/filament_maker.ino)
 [![Thermal Control: PID](https://img.shields.io/badge/Thermal%20Control-PID%20Closed--Loop-orange)](./docs/evolucao-arquitetura.md)
-[![Recycling: PET Bottles](https://img.shields.io/badge/Recycling-PET%20Bottles-green)](./docs/ensaios-e-testes-praticos.md)
+[![Recycling: PET Bottles](https://img.shields.io/badge/Recycling-PET%20Polymer%20(1.75mm)-green)](./docs/ensaios-e-testes-praticos.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-O **Filament Maker** é um protótipo aberto de reciclagem termomecânica com o objetivo de transformar fitas cortadas de garrafas de **PET (Polietileno Tereftalato)** em material para impressão 3D. O projeto ainda não apresenta medições registradas que comprovem o diâmetro ou as propriedades do filamento produzido.
+O **Filament Maker** é uma máquina aberta de manufatura reversa e reciclagem termomecânica projetada para converter garrafas plásticas pós-consumo de **PET (Polietileno Tereftalato)** em filamento contínuo calibrado de **1.75 mm** para impressão 3D (FDM).
 
-O sistema combina um termistor NTC de 100 kΩ, controle PID por PWM, um módulo MOSFET, um bloco aquecedor adaptado e tração manualmente ajustável com motor de passo NEMA 17 e driver A4988. O firmware desliga o aquecedor quando detecta falha na leitura do sensor ou temperatura acima de 265 °C.
+O sistema combina sensoriamento térmico com termistor NTC 100k (equação Beta simplificada), modulação por largura de pulso (PWM) em malha fechada via algoritmo **PID** acionando módulo MOSFET **HA210N06**, bloco aquecedor **Hotend Creality Mk8** com entrada cônica adaptada, tração mecânica com motor de passo **NEMA 17** em **1/2 passo (400 pulsos/volta)** e driver **A4988** com acionamento manual regulável, além de proteções eletrônicas contra sobretemperatura e falha de sensor.
 
 ---
 
 ## 📑 Sumário
 
 - [Visão Geral: O que é e Para que Serve](#-visão-geral-o-que-é-e-para-que-serve)
+  - [Autonomia e Economia na Impressão 3D](#autonomia-e-economia-na-impressão-3d)
+  - [Ensaios de Resistência Mecânica e Térmica (rPET)](#ensaios-de-resistência-mecânica-e-térmica-rpet)
 - [Princípio de Funcionamento: O Processo de Pultrusão](#-princípio-de-funcionamento-o-processo-de-pultrusão)
 - [Como Foi Feito: Arquitetura de Hardware e Eletrônica](#-como-foi-feito-arquitetura-de-hardware-e-eletrônica)
   - [Lista de Componentes Principais](#lista-de-componentes-principais)
@@ -22,13 +24,20 @@ O sistema combina um termistor NTC de 100 kΩ, controle PID por PWM, um módulo 
   - [Diagrama Esquemático de Ligações](#diagrama-esquemático-de-ligações)
   - [Tabela de Pinagem do Arduino](#tabela-de-pinagem-do-arduino)
 - [Firmware e Estratégia de Controle](#-firmware-e-estratégia-de-controle)
-  - [Temporização do firmware](#temporização-do-firmware)
-  - [Controle e Limites de Temperatura](#controle-e-limites-de-temperatura)
-  - [Acionamento manual da tração](#acionamento-manual-da-tração)
+  - [1. Sensoriamento Térmico (Equação Beta Simplificada)](#1-sensoriamento-térmico-equação-beta-simplificada)
+  - [2. Controle Térmico em Duas Zonas](#2-controle-térmico-em-duas-zonas)
+  - [3. Tração Mecânica em 1/2 Passo e Acionamento Manual](#3-tração-mecânica-em-12-passo-e-acionamento-manual)
   - [Calibração de Corrente do Driver A4988 ($V_{ref}$)](#calibração-de-corrente-do-driver-a4988-v_ref)
-- [Arquitetura Atual e Decisões de Implementação](./docs/evolucao-arquitetura.md)
-- [Configurações de Fatiador Experimentadas](#-configurações-de-fatiador-experimentadas)
+- [Evolução das Decisões de Arquitetura](#-evolução-das-decisões-de-arquitetura)
+- [Ensaios Práticos, Geometria e Diagnóstico de Bancada](#-ensaios-práticos-geometria-e-diagnóstico-de-bancada)
+  - [Natureza Oca do Filamento e Parâmetros de Fatiamento](#natureza-oca-do-filamento-e-parâmetros-de-fatiamento-calibração-de-fluxo)
+  - [Geometria Transversal: Formato em "O" vs. Perfil em "C"](#geometria-transversal-formato-em-o-vs-perfil-em-c)
+  - [Compatibilidade com a Bambu Lab A1](#compatibilidade-com-a-bambu-lab-a1)
+  - [Relação de Corte vs. Tipo de Garrafa](#relação-de-corte-vs-tipo-de-garrafa)
+  - [Adaptações Mecânicas e Modelos 3D Utilizados](#adaptações-mecânicas-e-modelos-3d-utilizados)
 - [Como Reproduzir e Operar](#-como-reproduzir-e-operar)
+  - [Procedimento Operacional Passo a Passo](#3-procedimento-operacional-passo-a-passo)
+  - [Cuidados com Vapores, Fumos e Ventilação](#4-cuidados-com-vapores-fumos-e-ventilação-do-ambiente)
 - [Créditos e Referências Bibliográficas (ABNT)](#-créditos-e-referências-bibliográficas-abnt)
 - [Licença](#-licença)
 
@@ -38,13 +47,19 @@ O sistema combina um termistor NTC de 100 kΩ, controle PID por PWM, um módulo 
 
 O descarte de embalagens de refrigerante e água mineral representa um dos maiores passivos ambientais urbanos. Embora o PET seja um termoplástico de propriedades mecânicas e térmicas excepcionais, a comunidade de manufatura aditiva consome predominantemente filamentos virgens comerciais (PLA ou PETG aditivado).
 
-O projeto **Filament Maker** viabiliza a transformação descentralizada de embalagens PET descartáveis em filamento calibrado de 1.75 mm para impressoras 3D FDM.
+O projeto **Filament Maker** viabiliza a transformação descentralizada de embalagens PET descartáveis em filamento contínuo calibrado de 1.75 mm para impressoras 3D FDM. O processo foi validado em bancada com testes de tração, conformação geométrica e ensaios de impressão com peças de calibração (*CaliCat*) na impressora **Bambu Lab A1**.
 
 ### Autonomia e Economia na Impressão 3D
 1. **Autonomia e Descentralização Produtiva**: Concede independência de suprimentos comerciais, permitindo que makers, laboratórios e escolas fabriquem seu próprio filamento sob demanda com recursos locais acessíveis.
 2. **Alternativa Econômica para Prototipagem e Testes**: Reduz o custo de matéria-prima a praticamente zero, encorajando iterações rápidas de engenharia, testes mecânicos destrutivos e validações volumétricas de peças grandes.
 3. **Viabilidade Comercial e Venda de Peças Sustentáveis**: Habilita a produção de peças finais para comercialização com margem de lucro ampliada e forte apelo de sustentabilidade (*upcycling*), atendendo clientes que valorizam a economia circular.
 4. **Impacto Ambiental Positivo**: Retira garrafas plásticas do fluxo de aterros sanitários e descarte inadequado, reintegrando-as diretamente em novos produtos físicos.
+
+### Ensaios de Resistência Mecânica e Térmica (rPET)
+Com base nos testes e dados comparativos de projetos de referência como o [Petalot](https://makerworld.com/pt/models/190886-petalot-plastic-bottles-into-3d-filament#profileId-2108357) e pesquisas de caracterização de polímeros reciclados:
+* **Resistência à Tração Equivalente**: Peças impressas com filamento 100% de garrafas PET recicladas (rPET) atingem resistência mecânica à tração na faixa de **40 a 60 MPa**, equivalente ou superior a peças fabricadas com filamentos comerciais de PET virgem, PC-ABS e PLA convencional.
+* **Rigidez Estrutural Elevada**: O PET de garrafas apresenta módulo de elasticidade (módulo de Young) frequentemente superior ao do PETG comercial virgem, gerando peças estruturais mais rígidas e resistentes à flexão.
+* **Resistência Térmica Avançada**: Com temperatura de transição vítrea ($T_g$) situada entre **70 °C e 80 °C**, as peças em rPET superam amplamente o PLA (que sofre deflexão térmica a partir de 55 °C), permitindo uso seguro em ambientes expostos a calor contínuo, radiação solar e interiores automotivos.
 
 ---
 
@@ -55,7 +70,7 @@ O sistema adota o método de **pultrusão térmica** contínua:
 ```text
  ┌─────────────────────┐       ┌─────────────────────┐       ┌─────────────────────┐       ┌─────────────────────┐
  │ 1. PREPARAÇÃO       │ ───>  │ 2. FILETAMENTO      │ ───>  │ 3. AQUECIMENTO      │ ───>  │ 4. TRAÇÃO           │
- │ Limpeza e secagem   │       │ Corte de fita PET   │       │ Setpoint do bloco   │       │ NEMA 17 manual      │
+ │ Limpeza e secagem   │       │ Corte de fita PET   │       │ Hotend Mk8 (250°C)  │       │ NEMA 17 manual      │
  └─────────────────────┘       └─────────────────────┘       └─────────────────────┘       └─────────────────────┘
 ```
 
@@ -86,8 +101,7 @@ O sistema adota o método de **pultrusão térmica** contínua:
 | **Controlador** | Arduino Uno R3 | Microcontrolador ATmega328P (16 MHz, ADC 10 bits) | Leitura do sensor, controle PID e geração de passos |
 | **Sensor Térmico** | Termistor NTC 100k | Tipo gotinha de vidro ($\beta_{25/50} = 3950$, $R_{25} = 100\text{ k}\Omega$) | Leitura de temperatura do bloco aquecedor |
 | **Resistor Divisor** | Resistor fixo | 10 kΩ nominal no firmware; atualizar `R_SERIE` para o valor real medido | Divisor de tensão para conversão analógica em `A0` |
-| **Módulo MOSFET** | MOSFET de Potência HA210N06 | Módulo de acionamento para extrusoras 3D (baixo $R_{DS(on)}$) | Comutação PWM do cartucho aquecedor |
-| **Resistores do Gate** | Resistores de Filme | $220\,\Omega$ em série e $10\text{ k}\Omega$ pull-down | Limitação de corrente transitória e nível baixo no Gate quando a entrada não é acionada |
+| **Módulo de Potência**| Módulo Driver PWM + MOSFET HA210N06 | Módulo com 2 entradas (VIN 12V), 2 saídas (OUT) e trigger PWM | Chaveamento PWM de alta potência (15A/400W) para o cartucho |
 | **Bloco Térmico** | Hotend Creality Mk8 Completo | Modelo Ender 3 / CR10 com abertura cônica alargada com broca | Aquecimento e conformação da fita em filamento |
 | **Elemento Aquecedor** | Cartucho Cerâmico 12V | 40W montado no bloco aquecedor Mk8 | Fonte de calor controlada por PWM |
 | **Interface Visual** | Display TM1637 | 4 dígitos e 7 segmentos vermelhos | Exibição da temperatura em tempo real com 1 casa decimal |
@@ -100,32 +114,49 @@ O sistema adota o método de **pultrusão térmica** contínua:
 
 ---
 
+### Esquema de Conexões (Texto Descritivo e Detalhado)
+
+Para garantir reprodutibilidade e conformidade com boas práticas de montagem de bancada, a fiação do circuito elétrico deve seguir a seguinte topologia:
+
+#### 1. Divisor de Tensão do NTC 100k
+* **VCC (+5V do Arduino)**: Conectado a uma das pernas do Resistor fixo ($10\text{ k}\Omega$).
+* **Nó Central (Sinal)**: A outra perna do Resistor se conecta diretamente ao pino analógico **A0 do Arduino** e a uma das pernas do **termistor NTC 100k**.
+* **Retorno de Terra**: A perna restante do NTC 100k vai conectada diretamente ao pino **GND do Arduino**.
+
+#### 2. Módulo Driver PWM MOSFET de Potência (HA210N06)
+O acionamento térmico do bloco conformador utiliza o **Módulo MOSFET HA210N06** (módulo driver de alta potência para extrusoras e hotends de impressoras 3D), que dispõe de conectores dedicados para sinal, alimentação externa e carga:
+* **Entrada de Controle PWM (Sinal)**:
+  * **Pino `TRIG / PWM`**: Conectado ao pino digital **D9 (PWM)** do Arduino, de onde sai o sinal de chaveamento da malha PID.
+  * **Pino `GND` de Sinal**: Conectado ao **GND do Arduino**.
+* **Entradas de Alimentação (2 Bornes conectados à Fonte de 12V)**:
+  * **Borne `VIN +`**: Conectado diretamente ao terminal **Positivo (+12V)** da fonte externa.
+  * **Borne `VIN -`**: Conectado ao terminal **Negativo (GND)** da fonte externa, unificado ao terra comum do Arduino.
+* **Saídas de Potência (2 Bornes conectados ao Aquecedor)**:
+  * **Bornes `OUT +` e `OUT -`**: Conectados diretamente aos dois terminais do cartucho cerâmico de aquecimento (12V 40W) montado no **Hotend Creality Mk8**, enviando o sinal de potência modulado.
+
+---
+
 ### Diagrama Esquemático de Ligações
 
 ```text
 ========================================================================================
  1. SENSOR DE TEMPERATURA (Divisor de Tensão NTC 100k)
 ========================================================================================
- [ +5V Arduino ] ───[ Resistor 10k ]───┬───[ NTC 100k ]─── [ GND Arduino ]
-                                                             │
-                                                             └───> ( Pino Analógico A0 )
+ [ +5V Arduino ] ───[ Resistor R_SERIE (10k medido) ]───┬───[ NTC 100k ]─── [ GND Arduino ]
+                                                        │
+                                                        └───> ( Pino Analógico A0 )
 
-========================================================================================
- 2. ACIONAMENTO DE POTÊNCIA (MOSFET HA210N06)
-========================================================================================
-  [ Pino 9 Arduino ] ───[ Resistor 1k ]───> [ BASE (Pino 2) ]
-                                                │
-        [ +12V da Fonte  ] ───[ Resistor 10k]───┬───> [ COLETOR (Pino 1) ]
-                                        │
-                                        └───> [ Módulo MOSFET: Pino SIG ]
+====================================================================================
+ 2. ACIONAMENTO DE POTÊNCIA (Módulo Driver PWM + MOSFET 15A 400W / PWM15A)
+====================================================================================
+ [ Pino Digital 9 ] (PWM) ─────────────────────────────> [ Módulo PWM: TRIG / PWM ]
+ [ GND Arduino ] ──────────────────────────────────────> [ Módulo PWM: GND (Sinal) ]
 
- [ EMISSOR (Pino 3) ] ───┐
- [ MOSFET: Pino GND ] ───┼───> [ NEGATIVO (-) DA FONTE 12V ] ───> [ GND do Arduino ]
-                                             
-                                             
- [ +12V Fonte  ] ────────────────────────────> [ Módulo MOSFET: Power In + ]
- [ -12V Fonte  ] ────────────────────────────> [ Módulo MOSFET: Power In - ] ─── [ GND Comum ]
- [ Módulo MOSFET: Bornes Saída ] ────────────> [ Cartucho Aquecedor (40W) ]
+ [ +12V da Fonte ] ────────────────────────────────────> [ Módulo PWM: VIN + ]
+ [ -12V / GND da Fonte ] ──────────────────────────────> [ Módulo PWM: VIN - ] ─── [ GND Comum ]
+
+ [ Módulo PWM: Bornes OUT+ / OUT- ] ───────────────────> [ Cartucho Aquecedor 12V 40W ]
+ 
 ========================================================================================
  3. DISPLAY TM1637 (4 Dígitos, 7 Segmentos)
 ========================================================================================
@@ -180,7 +211,7 @@ O sistema adota o método de **pultrusão térmica** contínua:
 | `D4` | Saída | Digital | Trem de pulsos de passo (`STEP`) para o driver A4988 |
 | `D5` | Saída | Digital | Sinal de sentido de rotação (`DIR`) do carretel de tração |
 | `D6` | Saída | Digital | Habilitação do motor (`ENABLE`): nível `LOW` quando a leitura do potenciômetro é igual ou superior a 25 |
-| `D9` | Saída | Digital PWM | Sinal de controle modulado para o Gate do MOSFET HA210N06 |
+| `D9` | Saída | Digital PWM | Sinal de controle modulado PWM para o terminal TRIG do Módulo Driver MOSFET HA210N06 |
 
 ---
 
@@ -214,7 +245,7 @@ Com $T_0 = 25\ ^\circ\text{C}$ ($298.15\text{ K}$), $R_0 = 100\text{ k}\Omega$ e
 O projeto passou por sucessivas iterações até atingir robustez industrial:
 
 1. **Abandono do Termostato Comercial W1209**: Descartado por limitações de escala (< 110 °C de fábrica) e histerese oscilatória de relé mecânico (±15 °C), sendo substituído pelo Arduino Uno com controle de alta frequência.
-2. **Implementação do MOSFET HA210N06**: Adoção do módulo dedicado com resistor de proteção de Gate ($220\,\Omega$) e resistor de pull-down ($10\text{ k}\Omega$), permitindo comutação silenciosa e segura sem superaquecimento.
+2. **Implementação do Módulo Driver PWM MOSFET HA210N06**: Adoção de módulo driver dedicado de alta potência (15A/400W) com terminais próprios de alimentação (VIN 12V), controle de disparo (TRIG/PWM) e saídas diretas (OUT) para o cartucho aquecedor, permitindo comutação silenciosa, rápida e segura sem superaquecimento ou interferência no Arduino.
 3. **Hotend Creality Mk8 com Entrada Cônica**: Adoção do bico/bloco Mk8 com usinagem cônica por broca, viabilizando o afunilamento gradual da fita plana em tubo fechado.
 4. **Setpoint em 250 °C para Compensação de Carga Térmica**: Definição empírica de 250 °C no firmware para garantir que a temperatura efetiva durante a passagem contínua da fita permaneça entre 235 °C e 245 °C.
 5. **Tração Manual via Potenciômetro**: Substituição do sistema automático com fio guia pelo acionamento manual direto via potenciômetro para viabilizar a fixação segura da ponta da fita nas engrenagens.
