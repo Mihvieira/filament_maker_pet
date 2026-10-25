@@ -93,3 +93,5 @@ INDÚSTRIA MAKER 4.0. **Calibração de espessura de corte para garrafas de águ
 TUTORIAIS 3D. **Como calcular a largura da tira de garrafa PET e fabricação de bico extrusor**. Séries Extrusora e Configuração. YouTube, 2023.
 
 UPGRADES ENDER. **Upgrades recomendados para imprimir com garrafa PET**. YouTube, 2023.
+
+GOOGLE. **Gemini: modelos de linguagem de grande escala**. Mountain View: Google LLC, 2026. Plataforma de inteligência artificial generativa. Disponível em: https://gemini.google.com. Acesso em: 25 out. 2026.

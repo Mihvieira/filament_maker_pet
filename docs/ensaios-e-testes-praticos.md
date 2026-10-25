@@ -101,4 +101,4 @@ Testes de tração e caracterização mecânica compilados em projetos de refer�
 * Foram adotadas as engrenagens de tração e mancais do projeto [Petalot (MakerWorld)](https://makerworld.com/pt/models/190886-petalot-plastic-bottles-into-3d-filament#profileId-2108357).
 * **Adaptação Estrutural para Base em Madeira**:
   - Na montagem direta sobre bancada plana de madeira, a força axial de tração gerava torção nos suportes plásticos, fazendo as engrenagens perderem o paralelismo.
-  - **Solução**: Foram introduzidas **duas barras fixas metálicas transversais** interligando diretamente as laterais dos suportes. Isso conferiu rigidez absoluta ao conjunto mecânico, eliminando folgas e perda de passos.
+  - **Solução**: Foram introduzidas **duas barras fixas transversais** interligando diretamente as laterais dos suportes. Isso conferiu rigidez absoluta ao conjunto mecânico, eliminando folgas e perda de passos.
