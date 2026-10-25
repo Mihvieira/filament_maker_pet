@@ -1,6 +1,6 @@
 # Referências Bibliográficas e Créditos
 
-Este documento reúne o levantamento bibliográfico completo e os créditos das fontes científicas, tecnológicas, manuais de manufatura aberta e repositórios da comunidade maker que fundamentaram a concepção, o projeto mecânico/eletrônico, os ensaios práticos e a calibração do **Filament Maker**.
+Este documento reúne fontes e créditos consultados durante o desenvolvimento do **Filament Maker**. A presença de uma referência não significa que seus resultados tenham sido reproduzidos ou medidos neste projeto. Os ensaios registrados no repositório se limitam às configurações do fatiador descritas em [`ensaios-e-testes-praticos.md`](./ensaios-e-testes-praticos.md).
 
 A compilação segue as diretrizes da norma brasileira **ABNT NBR 6023:2018** (*Informação e documentação — Referências — Elaboração*), dividida por categorias temáticas.
 
@@ -40,7 +40,7 @@ KREALAB. **Bottle To Filament Creator With An Old Ender 3 Or Ender 3v2**. Creali
 
 OPENFIL. **OpenFil – Produza seu próprio filamento 3D: Extrusora Open Source**. Projeto colaborativo de hardware livre. OpenFil, 2023.
 
-PETALOT. **Petalot: Plastic Bottles into 3D Filament**. Modelo 3D, engrenagens de tração para pultrusão e ensaios de resistência mecânica de filamento reciclado. MakerWorld, 2024. Disponível em: [https://makerworld.com/pt/models/190886-petalot-plastic-bottles-into-3d-filament#profileId-2108357](https://makerworld.com/pt/models/190886-petalot-plastic-bottles-into-3d-filament#profileId-2108357). Acesso em: 2026.
+PETALOT. **Petalot: Plastic Bottles into 3D Filament**. Modelo 3D e referência de mecanismo de tração. MakerWorld, 2024. Disponível em: [https://makerworld.com/pt/models/190886-petalot-plastic-bottles-into-3d-filament#profileId-2108357](https://makerworld.com/pt/models/190886-petalot-plastic-bottles-into-3d-filament#profileId-2108357). Acesso em: 2026.
 
 PETAMENTOR. **PETamentor 2: Recycled PET bottle filament maker**. Documentação técnica de hardware e montagem mecânica, 2022-2025.
 
@@ -49,8 +49,6 @@ REITEN966. **Polyformer: open source machine that recycles plastic bottles into 
 RIGA, Hugo Takahashi. **ENG-3246: Desenvolvimento de extrusora de filamentos para impressão 3D produzidos a partir de garrafas PET usadas**. Orientador: Edinilson Santos Menezes. Mostra Virtual de Projetos da FEBRACE. São Paulo: FEBRACE / Poli-USP, 2024.
 
 SANDER. **Simple PET Bottle Cutter**. Gabarito cortador helicoidal de tiras de garrafa PET com lâmina de estilete. MakerWorld, 2024. Disponível em: [https://makerworld.com/pt/models/98441-simple-pet-bottle-cutter#profileId-111492](https://makerworld.com/pt/models/98441-simple-pet-bottle-cutter#profileId-111492). Acesso em: 2026.
-
-SHANGRILA_3D. **Crushed Bottle Fixer: Bico adaptador para desamassar garrafas PET com ar comprimido**. Modelo 3D para impressão. MakerWorld, 2024. Disponível em: [https://makerworld.com/pt/models/2620743-crushed-bottle-fixer#profileId-2892599](https://makerworld.com/pt/models/2620743-crushed-bottle-fixer#profileId-2892599). Acesso em: 2026.
 
 ---
 

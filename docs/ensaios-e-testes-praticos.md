@@ -79,20 +79,10 @@ Para garantir que a tira dobre no diâmetro exato de 1.75 mm sem faltar nem sobr
 
 ---
 
-## 4. Ensaios de Resistência Mecânica e Térmica (Dados Petalot / rPET)
-
-Testes de tração e caracterização mecânica compilados em projetos de referência da comunidade ([Petalot](https://makerworld.com/pt/models/190886-petalot-plastic-bottles-into-3d-filament#profileId-2108357)) e relatórios laboratoriais revelam propriedades notáveis no filamento reciclado:
-* **Resistência à Tração**: Corpos de prova padronizados impressos em 100% de garrafas PET atingem resistência entre **40 MPa e 60 MPa**, valor comparável ao PETG virgem e muito superior a PLAs de baixo custo.
-* **Módulo de Young (Rigidez)**: O rPET de garrafas possui alta orientação molecular herdada do processo de sopro industrial birrotacional das embalagens, conferindo rigidez estrutural superior à do PETG comum.
-* **Resistência à Temperatura**: Enquanto o PLA deforma a partir de 55 °C, o filamento rPET tolera exposição contínua a **70 °C–80 °C** sem perda de forma, sendo indicado para peças automotivas e gabinetes de eletrônicos.
-
----
-
-## 5. Adaptações Mecânicas e Modelos 3D Utilizados
+## 4. Adaptações Mecânicas e Modelos 3D Utilizados
 
 ### 1. Preparação da Garrafa: Alisamento Térmico com Ar Comprimido
 * **Bico Rosqueável**: Utilizou-se o modelo [Crushed Bottle Fixer (MakerWorld)](https://makerworld.com/pt/models/2620743-crushed-bottle-fixer#profileId-2892599).
-* **Técnica de Remoção de Vincos**: Após pressurizar a garrafa com ar, utiliza-se um soprador térmico ou a chama da boca do fogão posicionada **próxima, mas nunca encostada**, mantendo a garrafa girando. O calor suave encolhe as tensões superficiais enquanto o ar expande o plástico, eliminando 100% dos relevos antes do fatiamento.
 
 ### 2. Gabarito Cortador de Fita
 * Para cortar a tira helicoidal contínua, utilizou-se o modelo [Simple PET bottle cutter (MakerWorld)](https://makerworld.com/pt/models/98441-simple-pet-bottle-cutter#profileId-111492), com lâmina de estilete padronizada de 18 mm.

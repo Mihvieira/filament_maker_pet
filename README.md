@@ -1,22 +1,20 @@
-# ♻️ Filament Maker: Extrusora e Pultrusora de Filamento PET (1.75 mm)
+# ♻️ Filament Maker: Protótipo de Pultrusora PET para Impressão 3D
 
 [![Arduino Uno](https://img.shields.io/badge/Microcontroller-Arduino%20Uno%20R3-00979D?logo=arduino&logoColor=white)](https://www.arduino.cc/)
 [![Language: C++](https://img.shields.io/badge/Firmware-C%2B%2B%20%2F%20Wiring-blue?logo=c%2B%2B&logoColor=white)](./firmware/filament_maker.ino)
 [![Thermal Control: PID](https://img.shields.io/badge/Thermal%20Control-PID%20Closed--Loop-orange)](./docs/evolucao-arquitetura.md)
-[![Recycling: PET Bottles](https://img.shields.io/badge/Recycling-PET%20Polymer%20(1.75mm)-green)](./docs/ensaios-e-testes-praticos.md)
+[![Recycling: PET Bottles](https://img.shields.io/badge/Recycling-PET%20Bottles-green)](./docs/ensaios-e-testes-praticos.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-O **Filament Maker** é uma máquina aberta de manufatura reversa e reciclagem termomecânica projetada para converter garrafas plásticas pós-consumo de **PET (Polietileno Tereftalato)** em filamento contínuo calibrado de **1.75 mm** para impressão 3D (FDM).
+O **Filament Maker** é um protótipo aberto de reciclagem termomecânica com o objetivo de transformar fitas cortadas de garrafas de **PET (Polietileno Tereftalato)** em material para impressão 3D. O projeto ainda não apresenta medições registradas que comprovem o diâmetro ou as propriedades do filamento produzido.
 
-O sistema integra sensoriamento térmico com termistor NTC 100k, modulação por largura de pulso (PWM) em malha fechada via algoritmo **PID** acionando módulo de potência MOSFET **HA210N06**, bloco de aquecimento **Hotend Creality Mk8** com entrada cônica adaptada, tração mecânica com motor de passo **NEMA 17** e driver **A4988** com acionamento manual regulável, além de proteções eletrônicas contra sobretemperatura e falha de sensor.
+O sistema combina um termistor NTC de 100 kΩ, controle PID por PWM, um módulo MOSFET, um bloco aquecedor adaptado e tração manualmente ajustável com motor de passo NEMA 17 e driver A4988. O firmware desliga o aquecedor quando detecta falha na leitura do sensor ou temperatura acima de 265 °C.
 
 ---
 
 ## 📑 Sumário
 
 - [Visão Geral: O que é e Para que Serve](#-visão-geral-o-que-é-e-para-que-serve)
-  - [Autonomia e Economia na Impressão 3D](#autonomia-e-economia-na-impressão-3d)
-  - [Ensaios de Resistência Mecânica e Térmica (rPET)](#ensaios-de-resistência-mecânica-e-térmica-rpet)
 - [Princípio de Funcionamento: O Processo de Pultrusão](#-princípio-de-funcionamento-o-processo-de-pultrusão)
 - [Como Foi Feito: Arquitetura de Hardware e Eletrônica](#-como-foi-feito-arquitetura-de-hardware-e-eletrônica)
   - [Lista de Componentes Principais](#lista-de-componentes-principais)
@@ -24,17 +22,12 @@ O sistema integra sensoriamento térmico com termistor NTC 100k, modulação por
   - [Diagrama Esquemático de Ligações](#diagrama-esquemático-de-ligações)
   - [Tabela de Pinagem do Arduino](#tabela-de-pinagem-do-arduino)
 - [Firmware e Estratégia de Controle](#-firmware-e-estratégia-de-controle)
-  - [Arquitetura Não-Bloqueante](#arquitetura-não-bloqueante)
-  - [Temperatura Operacional: Setpoint de 250 °C e Equilíbrio Dinâmico](#temperatura-operacional-setpoint-de-250-c-e-equilíbrio-dinâmico)
-  - [Acionamento Manual da Tração (Substituição do Fio Guia)](#acionamento-manual-da-tração-substituição-do-fio-guia)
+  - [Temporização do firmware](#temporização-do-firmware)
+  - [Controle e Limites de Temperatura](#controle-e-limites-de-temperatura)
+  - [Acionamento manual da tração](#acionamento-manual-da-tração)
   - [Calibração de Corrente do Driver A4988 ($V_{ref}$)](#calibração-de-corrente-do-driver-a4988-v_ref)
-- [Evolução das Decisões de Arquitetura](#-evolução-das-decisões-de-arquitetura)
-- [Ensaios Práticos, Geometria e Diagnóstico de Bancada](#-ensaios-práticos-geometria-e-diagnóstico-de-bancada)
-  - [Natureza Oca do Filamento e Parâmetros de Fatiamento (Calibração de Fluxo)](#natureza-oca-do-filamento-e-parâmetros-de-fatiamento-calibração-de-fluxo)
-  - [Geometria Transversal: Formato em "O" vs. Perfil em "C"](#geometria-transversal-formato-em-o-vs-perfil-em-c)
-  - [Compatibilidade com a Bambu Lab A1](#compatibilidade-com-a-bambu-lab-a1)
-  - [Relação de Corte vs. Tipo de Garrafa](#relação-de-corte-vs-tipo-de-garrafa)
-  - [Adaptações Mecânicas e Modelos 3D Utilizados](#adaptações-mecânicas-e-modelos-3d-utilizados)
+- [Arquitetura Atual e Decisões de Implementação](./docs/evolucao-arquitetura.md)
+- [Configurações de Fatiador Experimentadas](#-configurações-de-fatiador-experimentadas)
 - [Como Reproduzir e Operar](#-como-reproduzir-e-operar)
 - [Créditos e Referências Bibliográficas (ABNT)](#-créditos-e-referências-bibliográficas-abnt)
 - [Licença](#-licença)
@@ -43,21 +36,7 @@ O sistema integra sensoriamento térmico com termistor NTC 100k, modulação por
 
 ## 🎯 Visão Geral: O que é e Para que Serve
 
-O descarte de embalagens de refrigerante e água mineral representa um dos maiores passivos ambientais urbanos. Embora o PET seja um termoplástico de propriedades mecânicas e térmicas excepcionais, a comunidade de manufatura aditiva consome predominantemente filamentos virgens comerciais (PLA ou PETG aditivado).
-
-O projeto **Filament Maker** viabiliza a transformação descentralizada de embalagens PET descartáveis em filamento calibrado de 1.75 mm para impressoras 3D FDM.
-
-### Autonomia e Economia na Impressão 3D
-1. **Autonomia e Descentralização Produtiva**: Concede independência de suprimentos comerciais, permitindo que makers, laboratórios e escolas fabriquem seu próprio filamento sob demanda com recursos locais acessíveis.
-2. **Alternativa Econômica para Prototipagem e Testes**: Reduz o custo de matéria-prima a praticamente zero, encorajando iterações rápidas de engenharia, testes mecânicos destrutivos e validações volumétricas de peças grandes.
-3. **Viabilidade Comercial e Venda de Peças Sustentáveis**: Habilita a produção de peças finais para comercialização com margem de lucro ampliada e forte apelo de sustentabilidade (*upcycling*), atendendo clientes que valorizam a economia circular.
-4. **Impacto Ambiental Positivo**: Retira garrafas plásticas do fluxo de aterros sanitários e descarte inadequado, reintegrando-as diretamente em novos produtos físicos.
-
-### Ensaios de Resistência Mecânica e Térmica (rPET)
-Com base nos testes e dados comparativos de projetos de referência como o [Petalot](https://makerworld.com/pt/models/190886-petalot-plastic-bottles-into-3d-filament#profileId-2108357) e pesquisas de caracterização de polímeros reciclados:
-* **Resistência à Tração Equivalente**: Peças impressas com filamento 100% de garrafas PET recicladas (rPET) atingem resistência mecânica à tração na faixa de **40 a 60 MPa**, equivalente ou superior a peças fabricadas com filamentos comerciais de PET virgem, PC-ABS e PLA convencional.
-* **Rigidez Estrutural Elevada**: O PET de garrafas apresenta módulo de elasticidade (módulo de Young) frequentemente superior ao do PETG comercial virgem, gerando peças estruturais mais rígidas e resistentes à flexão.
-* **Resistência Térmica Avançada**: Com temperatura de transição vítrea ($T_g$) situada entre **70 °C e 80 °C**, as peças em rPET superam amplamente o PLA (que sofre deflexão térmica a partir de 55 °C), permitindo uso seguro em ambientes expostos a calor contínuo, radiação solar e interiores automotivos.
+O projeto explora uma abordagem de reaproveitamento de embalagens PET para impressão 3D. Este repositório documenta a arquitetura do protótipo, o firmware e algumas configurações de fatiador experimentadas. Não há resultados medidos registrados sobre propriedades mecânicas, térmicas, diâmetro, produtividade ou impacto ambiental do material produzido.
 
 ---
 
@@ -67,25 +46,22 @@ O sistema adota o método de **pultrusão térmica** contínua:
 
 ```text
  ┌─────────────────────┐       ┌─────────────────────┐       ┌─────────────────────┐       ┌─────────────────────┐
- │ 1. PREPARAÇÃO       │ ───>  │ 2. FILETAMENTO      │ ───>  │ 3. PULTRUSÃO MK8    │ ───>  │ 4. TRAÇÃO E         │
- │ Pressurização + ar  │       │ Cortador Simple PET │       │ Hotend Creality     │       │ BOBINAMENTO         │
- │ e calor sem encostar│       │ lâmina calibrada    │       │ 250°C (queda 235°C) │       │ NEMA 17 manual      │
+ │ 1. PREPARAÇÃO       │ ───>  │ 2. FILETAMENTO      │ ───>  │ 3. AQUECIMENTO      │ ───>  │ 4. TRAÇÃO           │
+ │ Limpeza e secagem   │       │ Corte de fita PET   │       │ Setpoint do bloco   │       │ NEMA 17 manual      │
  └─────────────────────┘       └─────────────────────┘       └─────────────────────┘       └─────────────────────┘
 ```
 
-1. **Higienização, Pressurização e Alívio Térmico da Garrafa**:
-   - A garrafa PET é lavada e tem seus rótulos e colas removidos.
-   - Utilizando o bico rosqueável [Crushed Bottle Fixer](https://makerworld.com/pt/models/2620743-crushed-bottle-fixer#profileId-2892599), a garrafa é inflada com ar comprimido.
-   - **Remoção de Vincos com Calor**: Com a garrafa inflada sob pressão e girando, aplica-se uma fonte de calor suave — seja um **soprador térmico** ou a **chama da boca do fogão** posicionada próxima, **nunca encostada** na garrafa. O calor alivia as tensões internas e expande as paredes uniformemente, eliminando todos os relevos, dobras e vincos originais. Isso evita que a fita saia mastigada ou varie de largura durante o corte.
+1. **Preparação da garrafa**:
+   - Remova rótulos e resíduos e lave e seque a garrafa antes do corte.
+   - Este repositório não documenta um método validado para remover vincos. Não aqueça garrafas pressurizadas nem use chama para esse fim.
 2. **Filetamento Contínuo**:
    - O fundo da garrafa é recortado e a borda inicial recebe um corte chanfrado em triângulo.
-   - A garrafa é cortada helicoidalmente com o auxílio do [Simple PET bottle cutter](https://makerworld.com/pt/models/98441-simple-pet-bottle-cutter#profileId-111492), gerando um filete de largura controlada (5 mm a 12 mm de acordo com a espessura da embalagem).
+   - A garrafa pode ser cortada em fita com um cortador apropriado. Não há medidas registradas que estabeleçam uma largura de corte ideal por tipo de garrafa.
 3. **Pultrusão Térmica no Hotend Creality Mk8 Adaptado**:
-   - Utiliza-se um **Hotend Creality Mk8 1.75mm** (original de impressoras Ender 3 Pro/V2/CR10) cuja entrada foi **adaptada e alargada com broca cônica**, criando uma transição suave para guiar e conformar as abas da fita plástica.
-   - O bloco é mantido sob controle PID com Setpoint de **250.0 °C**. Ao entrar em contato com o bocal quente, as abas da fita dobram-se em direção ao centro e soldam-se longitudinalmente, gerando o perfil tubular de 1.75 mm.
+   - O protótipo usa um bloco aquecedor adaptado, controlado pelo firmware. A conformação da fita é o objetivo do processo; o repositório não registra medições que comprovem diâmetro ou geometria do material produzido.
 4. **Tração Mecânica e Bobinamento**:
    - A ponta inicial é transpassada a quente com auxílio de alicate/pinça e presa nas engrenagens de tração (adaptadas do projeto [Petalot](https://makerworld.com/pt/models/190886-petalot-plastic-bottles-into-3d-filament#profileId-2108357)).
-   - O operador aciona o potenciômetro de velocidade, puxando o filamento de maneira constante (10 a 15 RPM).
+   - O operador ajusta a tração pelo potenciômetro. O firmware calcula a velocidade considerando 1 a 30 RPM, mas não há medições registradas da velocidade mecânica real.
 
 ---
 
@@ -95,41 +71,20 @@ O sistema adota o método de **pultrusão térmica** contínua:
 
 | Categoria | Componente | Especificação Técnica | Função no Sistema |
 | :--- | :--- | :--- | :--- |
-| **Controlador** | Arduino Uno R3 | Microcontrolador ATmega328P (16 MHz, ADC 10 bits) | Cérebro embarcado, cálculo PID e temporização não-bloqueante |
+| **Controlador** | Arduino Uno R3 | Microcontrolador ATmega328P (16 MHz, ADC 10 bits) | Leitura do sensor, controle PID e geração de passos |
 | **Sensor Térmico** | Termistor NTC 100k | Tipo gotinha de vidro ($\beta_{25/50} = 3950$, $R_{25} = 100\text{ k}\Omega$) | Leitura de temperatura do bloco aquecedor |
-| **Resistor Divisor** | Resistor Fixo de Precisão | $10\text{ k}\Omega$ a $100\text{ k}\Omega$ (medido com multímetro) | Divisor de tensão para conversão analógica em `A0` |
+| **Resistor Divisor** | Resistor fixo | 10 kΩ nominal no firmware; atualizar `R_SERIE` para o valor real medido | Divisor de tensão para conversão analógica em `A0` |
 | **Módulo MOSFET** | MOSFET de Potência HA210N06 | Módulo de acionamento para extrusoras 3D (baixo $R_{DS(on)}$) | Comutação PWM do cartucho aquecedor |
-| **Resistores do Gate** | Resistores de Filme | $220\,\Omega$ em série e $10\text{ k}\Omega$ pull-down | Proteção do pino digital e garantia de desligamento |
+| **Resistores do Gate** | Resistores de Filme | $220\,\Omega$ em série e $10\text{ k}\Omega$ pull-down | Limitação de corrente transitória e nível baixo no Gate quando a entrada não é acionada |
 | **Bloco Térmico** | Hotend Creality Mk8 Completo | Modelo Ender 3 / CR10 com abertura cônica alargada com broca | Aquecimento e conformação da fita em filamento |
 | **Elemento Aquecedor** | Cartucho Cerâmico 12V | 40W montado no bloco aquecedor Mk8 | Fonte de calor controlada por PWM |
 | **Interface Visual** | Display TM1637 | 4 dígitos e 7 segmentos vermelhos | Exibição da temperatura em tempo real com 1 casa decimal |
 | **Motor de Tração** | Motor de Passo NEMA 17 | Modelo 17HS4401 (torque de 4.0 kgf.cm) | Puxamento do filamento na saída do bico |
-| **Driver de Motor** | Módulo Driver A4988 | Configurado com 1/16 micropasso e dissipador | Controle de corrente e rotação do motor |
+| **Driver de Motor** | Módulo Driver A4988 | O cálculo de velocidade do firmware assume 2 micropassos por passo completo | A configuração física dos pinos de micropasso não é controlada pelo firmware |
 | **Filtro de Alimentação**| Capacitor Eletrolítico | $100\ \mu\text{F} / 35\text{V}$ soldado entre `VMOT` e `GND` | Proteção do driver contra picos de tensão indutiva |
 | **Ajuste de Velocidade**| Potenciômetro Rotativo | Linear de $10\text{ k}\Omega$ conectado ao canal `A1` | Acionamento manual e regulagem de velocidade |
-| **Cortador de Fita** | Simple PET Bottle Cutter | Modelo impresso com lâmina de estilete | Corte padronizado de tiras de garrafa PET |
+| **Cortador de Fita** | Simple PET Bottle Cutter | Modelo impresso com lâmina de estilete | Corte de tiras de garrafa PET |
 | **Fonte Externa** | Fonte Chaveada 12V DC | 12V / 10A (com GND unificado ao Arduino) | Alimentação de alta corrente do aquecedor e motor |
-
----
-
-### Esquema de Conexões (Texto Descritivo e Detalhado)
-
-Para garantir reprodutibilidade e conformidade com boas práticas de montagem de bancada, a fiação do circuito elétrico deve seguir a seguinte topologia:
-
-#### 1. Divisor de Tensão do NTC 100k
-* **VCC (+5V do Arduino)**: Conectado a uma das pernas do Resistor fixo ($10\text{ k}\Omega$ ou $100\text{ k}\Omega$).
-* **Nó Central (Sinal)**: A outra perna do Resistor se conecta diretamente ao pino analógico **A0 do Arduino** e a uma das pernas do **termistor NTC 100k**.
-* **Retorno de Terra**: A perna restante do NTC 100k vai conectada diretamente ao pino **GND do Arduino**.
-
-#### 2. Circuito de Potência do MOSFET HA210N06
-* **Gate (Pino G)**: Conectado ao pino digital **D9 (PWM)** do Arduino por meio de um **resistor de 220 Ohms** em série (para proteção do pino contra correntes de pico de carga da capacitância de gate).
-  * *Recomendação de Segurança*: Instala-se um **resistor de 10k Ohms entre o Gate e o GND** (resistor de *pull-down*) para assegurar que o MOSFET permaneça completamente desligado durante o processo de boot ou se o Arduino reiniciar.
-* **Drain (Pino D)**: Conectado ao terminal **Negativo (-)** do cartucho aquecedor do bloco Hotend Creality Mk8.
-* **Source (Pino S)**: Conectado ao barramento de **GND comum** (interligando o GND da fonte de alimentação externa ao GND do Arduino).
-
-#### 3. Alimentação Externa (Fonte de 12V)
-* **Positivo (+12V da fonte)**: Vai conectado diretamente ao terminal **Positivo (+)** do cartucho aquecedor.
-* **Negativo (GND da fonte)**: Conectado ao pino **Source (S)** do MOSFET HA210N06 e fisicamente interligado ao pino **GND do Arduino** para assegurar a mesma referência elétrica em todo o sistema.
 
 ---
 
@@ -139,23 +94,26 @@ Para garantir reprodutibilidade e conformidade com boas práticas de montagem de
 ========================================================================================
  1. SENSOR DE TEMPERATURA (Divisor de Tensão NTC 100k)
 ========================================================================================
- [ +5V Arduino ] ───[ Resistor R_SERIE (10k/100k medido) ]───┬───[ NTC 100k ]─── [ GND Arduino ]
+ [ +5V Arduino ] ───[ Resistor 10k ]───┬───[ NTC 100k ]─── [ GND Arduino ]
                                                              │
                                                              └───> ( Pino Analógico A0 )
 
 ========================================================================================
- 2. ACIONAMENTO DE POTÊNCIA (MOSFET HA210N06 + HOTEND CREALITY MK8)
+ 2. ACIONAMENTO DE POTÊNCIA (MOSFET HA210N06)
 ========================================================================================
- [ Pino Digital 9 ] ───[ Resistor 220 Ω ]───┬───> Gate (G) [ MOSFET HA210N06 ]
-                                            │
-                                  [ Resistor 10 kΩ ] (Pull-down)
-                                            │
-                                            └───> [ GND Arduino / Fonte ]
+  [ Pino 9 Arduino ] ───[ Resistor 1k ]───> [ BASE (Pino 2) ]
+                                                │
+        [ +12V da Fonte  ] ───[ Resistor 10k]───┬───> [ COLETOR (Pino 1) ]
+                                        │
+                                        └───> [ Módulo MOSFET: Pino SIG ]
 
- [ +12V Fonte ] ───────────────────────────────────────────> [ Bloco Mk8 (+) ]
- [ Drain (D) do MOSFET ] ──────────────────────────────────> [ Bloco Mk8 (-) ]
- [ Source (S) do MOSFET ] ─────────────────────────────────> [ GND COMUM (Fonte e Arduino) ]
-
+ [ EMISSOR (Pino 3) ] ───┐
+ [ MOSFET: Pino GND ] ───┼───> [ NEGATIVO (-) DA FONTE 12V ] ───> [ GND do Arduino ]
+                                             
+                                             
+ [ +12V Fonte  ] ────────────────────────────> [ Módulo MOSFET: Power In + ]
+ [ -12V Fonte  ] ────────────────────────────> [ Módulo MOSFET: Power In - ] ─── [ GND Comum ]
+ [ Módulo MOSFET: Bornes Saída ] ────────────> [ Cartucho Aquecedor (40W) ]
 ========================================================================================
  3. DISPLAY TM1637 (4 Dígitos, 7 Segmentos)
 ========================================================================================
@@ -175,7 +133,7 @@ Para garantir reprodutibilidade e conformidade com boas práticas de montagem de
   [ GND Arduino ] ─────────────────────────────────────────> [ A4988: GND Lógico ]
 
   [ A4988: SLEEP ] ─── jumpeado fisicamente ───────────────> [ A4988: RESET ]
-  [ A4988: MS1, MS2, MS3 ] ────────────────────────────────> [ +5V ] (1/16 micropasso)
+  [ A4988: MS1, MS2, MS3 ] ─── +5V (HIGH),	GND (LOW),	GND (LOW)
 
  Alimentação e Bobinas do Motor:
   [ +12V Fonte ] ───────────────────┬──────────────────────> [ A4988: VMOT ]
@@ -208,7 +166,7 @@ Para garantir reprodutibilidade e conformidade com boas práticas de montagem de
 | `D3` | I/O | Digital | Barramento de dados (`DIO`) para o display TM1637 |
 | `D4` | Saída | Digital | Trem de pulsos de passo (`STEP`) para o driver A4988 |
 | `D5` | Saída | Digital | Sinal de sentido de rotação (`DIR`) do carretel de tração |
-| `D6` | Saída | Digital | Habilitação do motor (`ENABLE`): nível `LOW` apenas quando o knob estiver ativo |
+| `D6` | Saída | Digital | Habilitação do motor (`ENABLE`): nível `LOW` quando a leitura do potenciômetro é igual ou superior a 25 |
 | `D9` | Saída | Digital PWM | Sinal de controle modulado para o Gate do MOSFET HA210N06 |
 
 ---
@@ -217,34 +175,12 @@ Para garantir reprodutibilidade e conformidade com boas práticas de montagem de
 
 O código-fonte oficial encontra-se em [`firmware/filament_maker.ino`](./firmware/filament_maker.ino).
 
-### Arquitetura Não-Bloqueante
-O firmware não faz uso de rotinas bloqueantes (`delay()`). O loop opera dividindo as tarefas por temporizadores independentes:
-1. **Passos de Alta Resolução via `micros()`**: Geração de pulsos com intervalo variável para rotação suave e sem solavancos.
-2. **Amostragem Térmica e PID via `millis()` a cada 100 ms**: Realiza sobreamostragem com média móvel no ADC, calcula Steinhart-Hart/Beta, computa o algoritmo `PID_v1` e atualiza a telemetria no display TM1637.
-
-### Temperatura Operacional: Setpoint de 250 °C e Equilíbrio Dinâmico
-* **Por que 250 °C no Código?**: Embora a temperatura teórica ideal de conformação estática do PET seja de aproximadamente 235 °C, definiu-se o **Setpoint do PID em 250.0 °C** no código.
-* **Causa Física**: A passagem contínua da fita de plástico (que entra em temperatura ambiente de ~25 °C) atua como um dissipador térmico dinâmico dentro do canal do bloco Creality Mk8.
-* **Resultado em Regime Estacionário**: Ao puxar a fita a velocidades operacionais (10 a 15 RPM), a temperatura do bico cai e estabiliza-se precisamente entre **235.0 °C e 245.0 °C**, permitindo excelente fluidez, alta velocidade de puxamento e soldagem homogênea das bordas sem queimar o plástico.
-* **Proteção Térmica**: O corte de emergência por sobretemperatura foi parametrizado em **265.0 °C**.
-
-### Acionamento Manual da Tração (Substituição do Fio Guia)
-Durante os testes de desenvolvimento, a estratégia de utilizar um "fio guia" (leader wire) para transpassar a fita a frio falhou, pois o fio quebrava ou desprendia-se na transição cônica.
-
-A rotina de tração foi modificada para controle **100% manual via potenciômetro**:
+### Acionamento manual da tração
+A velocidade é ajustada manualmente por um potenciômetro:
 1. Com o potenciômetro no mínimo (`valorPotenciometro < 25`), o pino `ENABLE` vai para `HIGH`, desenergizando as bobinas do motor NEMA 17.
-2. O operador aguarda o bloco atingir a temperatura operacional, introduz a ponta chanfrada em triângulo da fita no bico aquecido e a puxa pela saída com um alicate de bico fino ou pinça.
+2. Com o bloco aquecido, a ponta da fita é conduzida pelo bico com ferramenta apropriada. Evite contato com o bloco e o bico quentes.
 3. Com o motor desenergizado, a ponta conformada é engatada e fixada com firmeza nas engrenagens de tração.
 4. O operador gira o potenciômetro, acionando o motor no momento exato e regulando visualmente a tração contínua.
-
-### Calibração de Corrente do Driver A4988 ($V_{ref}$)
-A corrente do driver A4988 deve ser regulada no trimpot metálico para assegurar torque e operação fria:
-
-$$V_{\text{ref}} = I_{\text{max}} \times 8 \times R_s$$
-
-Para resistores sense de $0.10\ \Omega$ (marcados como **R100**), a tensão de referência para corrente de **0.6 A** é:
-
-$$V_{\text{ref}} = 0.6\text{ A} \times 8 \times 0.10\ \Omega = \mathbf{0.48\text{ V}}$$
 
 ---
 
@@ -324,7 +260,7 @@ A largura do filete deve compensar a espessura da parede da garrafa para atingir
 
 1. **Engrenagens de Tração do Projeto Petalot**:
    - Extraídas e adaptadas a partir do modelo [Petalot (MakerWorld)](https://makerworld.com/pt/models/190886-petalot-plastic-bottles-into-3d-filament#profileId-2108357).
-   - **Reforço com Barras Fixas na Base de Madeira**: Para montar as engrenagens sobre bancada plana de madeira (sem o chassi original), **adicionaram-se duas barras fixas metálicas transversais** interligando diretamente os suportes das engrenagens, eliminando torção lateral e flexão sob esforço de tração.
+   - **Reforço com Barras Fixas na Base de Madeira**: Para montar as engrenagens sobre bancada plana de madeira (sem o chassi original), **adicionaram-se duas barras fixas transversais** interligando diretamente os suportes das engrenagens, eliminando torção lateral e flexão sob esforço de tração.
 2. **Cortador de Garrafa PET**:
    - Utilizado o modelo [Simple PET bottle cutter (MakerWorld)](https://makerworld.com/pt/models/98441-simple-pet-bottle-cutter#profileId-111492) com lâmina de estilete afiada para corte helicoidal contínuo e consistente.
 3. **Bico de Pressurização (*Crushed Bottle Fixer*)**:
@@ -350,10 +286,10 @@ Abra [`firmware/filament_maker.ino`](./firmware/filament_maker.ino):
 2. Carregue o firmware na placa **Arduino Uno**.
 
 ### 3. Procedimento Operacional Passo a Passo
-1. **Ligar o Aquecimento**: Conecte a fonte de 12V. O display ligará e o bloco aquecerá rapidamente até o Setpoint de **250.0 °C**.
+1. **Ligar o Aquecimento**: Conecte a fonte de 12 V. O firmware controla a leitura do sensor no bloco em direção ao setpoint de **250 °C**. Não há registro do tempo de aquecimento nem de medição independente da temperatura da fita.
 2. **Inserir a Fita Manualmente**: Com o potenciômetro no zero (motor parado), passe a ponta chanfrada da fita pelo bico cônico quente do hotend Mk8.
 3. **Puxar e Prender**: Puxe a ponta que sai do bico com o auxílio de um alicate ou pinça até alcançar as engrenagens de tração e fixe-a firmemente nos dentes de arraste.
-4. **Acionar a Tração**: Gire o potenciômetro de velocidade. O motor NEMA 17 começará a tracionar de forma contínua e suave na cadência ideal (10 a 15 RPM), mantendo a temperatura dinâmica em 235 °C a 245 °C.
+4. **Acionar a Tração**: Gire o potenciômetro. O firmware mapeia a entrada para uma faixa calculada de 1 a 30 RPM; a velocidade real depende da configuração do A4988 e da mecânica, e não há medição registrada.
 
 ---
 
@@ -366,9 +302,8 @@ Abra [`firmware/filament_maker.ino`](./firmware/filament_maker.ino):
 * **SILVA, Deley A. N. da et al.** *Construindo uma filamentadora semi automatizada.* Concurso de Ideias - SBC, 2025.
 * **PLASTIC ODYSSEY.** *3D printing from PET bottles: a step-by-step tutorial.* Recycling Academy, 2023.
 * **MODELOS 3D E PROJETOS DA COMUNIDADE**:
-  - [Petalot: Plastic Bottles into 3D Filament (MakerWorld)](https://makerworld.com/pt/models/190886-petalot-plastic-bottles-into-3d-filament#profileId-2108357) – Engrenagens de tração e dados mecânicos.
+  - [Petalot: Plastic Bottles into 3D Filament (MakerWorld)](https://makerworld.com/pt/models/190886-petalot-plastic-bottles-into-3d-filament#profileId-2108357) – Referência para as engrenagens de tração.
   - [Simple PET Bottle Cutter (MakerWorld)](https://makerworld.com/pt/models/98441-simple-pet-bottle-cutter#profileId-111492) – Gabarito cortador de tiras.
-  - [Crushed Bottle Fixer (MakerWorld)](https://makerworld.com/pt/models/2620743-crushed-bottle-fixer#profileId-2892599) – Bico para pressurização de garrafas.
   - [PETamentor 2](https://petamentor2.com/), [Recreator 3D MK5/MK6](https://recreator3d.com/) e [Polyformer](https://github.com/Reiten966/Polyformer).
 * **COMUNIDADE MAKER**: *Ali3d Brasil*, *Eng. Felipe*, *Everton*, *Tutoriais 3D*, *MakerHero* e *Indústria Maker 4.0*.
 

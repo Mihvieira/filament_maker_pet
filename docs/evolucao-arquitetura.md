@@ -46,37 +46,18 @@ A adoção do termistor de vidro tipo gotinha (NTC 100k 3950) revelou problemas 
   - Resistor em série de **$220\,\Omega$** entre o pino `D9` do Arduino e o terminal Gate (G), limitando correntes de pico transitórias.
   - Resistor de **$10\text{ k}\Omega$ de pull-down** entre o Gate e o GND comum, garantindo que o aquecedor permaneça desligado caso o Arduino reinicie ou esteja em processo de inicialização.
 
-### Dinâmica Térmica: Definição do Setpoint em 250 °C
-* Embora a temperatura teórica ótima de moldagem do PET estático seja de cerca de 235 °C, definiu-se o **Setpoint do PID em 250.0 °C** no firmware.
-* **Justificativa Dinâmica**: A fita contínua de PET entra fria (temperatura ambiente) no bloco a uma cadência contínua, retirando calor do sistema. Com o Setpoint em 250 °C, o equilíbrio dinâmico real do bico durante a operação fixa-se entre **235.0 °C e 245.0 °C**, garantindo alta velocidade de conformação, excelente fluidez e soldagem homogênea sem degradar o polímero.
-* A trava de emergência por sobretemperatura foi ajustada para **265.0 °C**.
+## Tração
 
----
+- O motor de passo NEMA 17 é acionado pelo driver A4988, com STEP em D4, DIR em D5 e ENABLE em D6.
+- O potenciômetro ligado a A1 mantém o motor desabilitado quando a leitura é inferior a 25. A partir desse valor, o firmware calcula uma rotação entre 1 e 30 RPM e habilita o driver.
+- O cálculo de velocidade no código usa 200 passos completos por volta e `MICROSTEPS = 2`, isto é, 400 pulsos por volta. Os comentários nessa seção também citam 3.200 pulsos por volta e MS1, MS2 e MS3 conectados a +5 V, informações que não correspondem à expressão calculada. O firmware não controla esses pinos, então a rotação real depende da configuração física do A4988 e não é confirmada pela rotação calculada.
+- A geração dos passos usa `micros()`; o pulso inclui uma espera de 3 microssegundos com `delayMicroseconds()`. Assim, a geração de passos não é totalmente livre de espera bloqueante.
+- O enable do motor depende do potenciômetro, não da temperatura do bloco. O firmware não implementa o intertravamento térmico de motor descrito em versões anteriores da documentação.
 
-## 4. Mecanismo de Tração: Transição do Fio Guia para Acionamento Manual
+## Outros componentes descritos no projeto
 
-### Falha da Estratégia de Fio Guia
-* Inicialmente, testou-se o uso de um "fio guia" metálico ou plástico preso à ponta da fita para tentar transpassá-la a frio através do bico e iniciar o puxamento de forma automática.
-* **Problema Encontrado**: O fio guia desprendia-se, entortava ou quebrava ao passar pela zona cônica aquecida, além de correr o risco de riscar as paredes internas do bocal usinado.
+O README descreve um Arduino Uno, display TM1637, módulo MOSFET para o cartucho aquecedor, hotend adaptado e fonte de 12 V. As referências de modelo e ligações são informações de montagem; não constituem, por si só, evidência de desempenho ou de segurança elétrica da montagem.
 
-### Solução Definitiva: Acionamento Manual via Potenciômetro
-* O firmware foi configurado para que o motor permaneça desligado enquanto o potenciômetro estiver em sua zona morta inicial (`valorPotenciometro < 25`).
-* **Procedimento Operacional**:
-  1. O bloco atinge a temperatura operacional de 250 °C.
-  2. A ponta chanfrada em triângulo da fita é introduzida manualmente no bico cônico quente.
-  3. Com um alicate de bico fino ou pinça, o operador puxa a ponta emergente pela saída do bico e a fixa firmemente nas engrenagens de tração (adaptadas do projeto [Petalot](https://makerworld.com/pt/models/190886-petalot-plastic-bottles-into-3d-filament#profileId-2108357)).
-  4. O operador gira o knob do potenciômetro para ativar o motor NEMA 17 no instante exato, regulando suavemente a velocidade entre 10 e 15 RPM.
+## Escopo dos ensaios documentados
 
----
-
-## 5. Resumo Comparativo das Decisões de Arquitetura
-
-| Subsistema | Decisão Inicial / Descartada | Decisão Final Homologada | Motivação Técnica |
-| :--- | :--- | :--- | :--- |
-| **Controlador** | Termostato digital W1209 | Arduino Uno R3 com firmware C++ | Escala térmica até 265 °C, controle PID e flexibilidade de I/O. |
-| **Sensor Térmico** | NTC 10k sem filtragem | NTC 100k 3950 + Resistor medido + Média móvel | Precisão em 250 °C, imunidade a ruídos e anulação de offset. |
-| **Potência** | Relé eletromecânico | Módulo MOSFET HA210N06 (com $220\,\Omega$ e $10\text{ k}\Omega$) | Chaveamento PWM de alta velocidade, silencioso e seguro. |
-| **Elemento Aquecedor**| Bloco genérico sem afunilamento | Hotend Creality Mk8 com entrada cônica brocada | Guia progressiva que dobra a fita de forma tubular contínua. |
-| **Temperatura Setpoint**| 235 °C estático | 250.0 °C nominal (queda real para 235 °C–245 °C) | Compensa a perda de calor por condução com a passagem da fita. |
-| **Inserção da Fita** | Fio guia de alimentação a frio | Inserção a quente com fixação e acionamento manual | Elimina falhas de desprendimento do guia no cone quente. |
-| **Tração Mecânica** | Motor DC comum com redução genérica | Motor NEMA 17 + A4988 + Engrenagens com reforço | Passo angular firme, sem perda de torque e sem flexão na bancada. |
+Os registros experimentais disponíveis neste repositório se limitam a configurações do fatiador. Não foram mantidos resultados ou medições que sustentem as afirmações anteriores sobre resistência mecânica, comportamento térmico do filamento, compatibilidade com impressoras, qualidade de impressão, largura ideal de corte ou desempenho mecânico da tração. Consulte [`ensaios-e-testes-praticos.md`](./ensaios-e-testes-praticos.md) para as configurações de fatiador registradas e seus limites.
