@@ -1,0 +1,23 @@
+# Arquivos do Sistema Operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Compilações e IDEs Arduino
+*.hex
+*.elf
+*.bin
+build/
+.arduino/
+*.o
+*.a
+
+# Ambientes e Editores
+.vscode/
+.idea/
+*.swp
+*~
+
+# Antigravity e Agentes Internos
+.agents/
+scratch/
